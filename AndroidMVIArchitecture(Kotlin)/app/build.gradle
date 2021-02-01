@@ -1,0 +1,80 @@
+import dependencies.*
+
+plugins {
+    id 'com.android.application'
+    id 'kotlin-android'
+    id 'kotlin-kapt' //For adding annotation processing to the application
+}
+
+android {
+
+    compileSdkVersion Versions.compilesdk
+    buildToolsVersion Versions.build_tool_version
+
+    defaultConfig {
+        applicationId ApplicationDependencies.app_id
+        minSdkVersion Versions.min_sdk
+        targetSdkVersion Versions.target_sdk
+        versionCode Versions.version_code
+        versionName Versions.version_name
+
+        testInstrumentationRunner TestDependencies.android_junit_instrumentation
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+    compileOptions {
+        sourceCompatibility Versions.java_version
+        targetCompatibility Versions.java_version
+    }
+    kotlinOptions {
+        jvmTarget = Versions.java_version
+    }
+}
+
+dependencies {
+
+    //Start Dependencies
+    implementation Dependencies.kotlin_stdlib
+    implementation Dependencies.core_ktx
+
+    //Support
+    implementation SupportDependencies.appcompat
+    implementation SupportDependencies.material
+    implementation SupportDependencies.constraintlayout
+
+    // -- Retrofit2
+    implementation Dependencies.retrofit
+    implementation Dependencies.retrofit_converter_gson // To convert from retrofit
+
+    // -- Lifecycle Components (ViewModel, LiveData and ReactiveStreams)
+    implementation Dependencies.lifecycle_extensions // For creating viewmodel provider
+    kapt Dependencies.lifecycle_compiler
+
+    // -- Coroutines
+    implementation Dependencies.core_ktx
+    implementation Dependencies.kotlinx_coroutines_android
+
+    // RecyclerView
+    implementation Dependencies.recyclerview
+
+    //glide
+    implementation Dependencies.glide
+    kapt Dependencies.glide_compiler
+
+    // Leak Canary (detecting memory leaks)
+    debugImplementation Dependencies.leakcanary_android
+
+    //End Dependencies
+
+
+
+    //Test
+    testImplementation TestDependencies.junit_test_implementation
+    androidTestImplementation TestDependencies.junit
+    androidTestImplementation TestDependencies.espresso
+}
