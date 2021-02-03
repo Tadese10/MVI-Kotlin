@@ -7,12 +7,15 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.bumptech.glide.Glide
 import com.example.androidmvi.R
 import com.example.androidmvi.model.BlogPost
+import com.example.androidmvi.model.User
 import com.example.androidmvi.ui.DataStateListener
 import com.example.androidmvi.ui.main.state.MainStateEvent
 import com.example.androidmvi.util.TopSpacingItemDecoration
 import kotlinx.android.synthetic.main.fragment_main.*
+import kotlinx.android.synthetic.main.layout_blog_list_item.*
 
 class MainFragment : Fragment(), BlogListAdapter.Interaction {
 
@@ -104,6 +107,7 @@ class MainFragment : Fragment(), BlogListAdapter.Interaction {
             viewState.user?.let{
                 //set user data
                 println("DEBUG: Setting user data: ${viewState}")
+                setUserProperties(it)
             }
 
         })
@@ -112,6 +116,16 @@ class MainFragment : Fragment(), BlogListAdapter.Interaction {
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
         super.onCreateOptionsMenu(menu, inflater)
         inflater.inflate(R.menu.main_menu, menu)
+    }
+
+    private fun setUserProperties(user: User){
+        email.text = user.email
+        username.text = user.username
+        view?.let{
+            Glide.with(it.context)
+                .load(user.image)
+                .into(image)
+        }
     }
 
     override fun onAttach(context: Context) {
