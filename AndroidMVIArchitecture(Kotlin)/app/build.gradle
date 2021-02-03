@@ -3,6 +3,7 @@ import dependencies.*
 plugins {
     id 'com.android.application'
     id 'kotlin-android'
+    id 'kotlin-android-extensions'
     id 'kotlin-kapt' //For adding annotation processing to the application
 }
 

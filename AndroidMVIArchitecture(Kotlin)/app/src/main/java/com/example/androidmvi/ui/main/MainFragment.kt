@@ -1,16 +1,26 @@
 package com.example.androidmvi.ui.main
 
+import android.content.Context
 import android.os.Bundle
 import android.view.*
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
+import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.androidmvi.R
+import com.example.androidmvi.model.BlogPost
+import com.example.androidmvi.ui.DataStateListener
 import com.example.androidmvi.ui.main.state.MainStateEvent
+import com.example.androidmvi.util.TopSpacingItemDecoration
+import kotlinx.android.synthetic.main.fragment_main.*
 
-class MainFragment : Fragment() {
+class MainFragment : Fragment(), BlogListAdapter.Interaction {
 
     lateinit var viewModel: MainViewModel
+
+    lateinit var dataStateHandler : DataStateListener
+
+    lateinit var blogListAdapter : BlogListAdapter
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -18,6 +28,16 @@ class MainFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View? {
         return inflater.inflate(R.layout.fragment_main, container, false)
+    }
+
+    private fun initRecyclerView(){
+        recycler_view.apply {
+            layoutManager = LinearLayoutManager(activity)
+            val topSpacing = TopSpacingItemDecoration(30)
+            addItemDecoration(topSpacing)
+            blogListAdapter = BlogListAdapter(this@MainFragment)
+            adapter = blogListAdapter
+        }
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -28,28 +48,37 @@ class MainFragment : Fragment() {
         } ?: throw Exception("Invalid Activity")
 
         subscribeObserver()
+        initRecyclerView()
     }
 
     fun subscribeObserver(){
         viewModel.dataState.observe(viewLifecycleOwner,Observer{ dataState ->
             println("DEBUG: DataState: ${dataState}")
 
+            //Handle loading and message
+            dataStateHandler.onDataStateChange(dataState)
+
             //Handle data
             dataState.data?.let { mainViewState ->
 
-                mainViewState.blogPosts?.let{
-                    //set blog post data
-                    viewModel.setBlogListData(it)
+                mainViewState.getContentIfNotHandled()?.let {
+                    it.blogPosts?.let{
+                        //set blog post data
+                        viewModel.setBlogListData(it)
+                    }
+
+                    it.user?.let{
+                        //set user data
+                        viewModel.setUser(it)
+                    }
                 }
 
-                mainViewState.user?.let{
-                    //set user data
-                    viewModel.setUser(it)
-                }
 
             }
 
-            //Handle Error
+
+            /*
+             //Handle Error
             dataState.message?.let{
 
             }
@@ -59,6 +88,8 @@ class MainFragment : Fragment() {
 
             }
 
+             */
+
 
         })
 
@@ -67,6 +98,7 @@ class MainFragment : Fragment() {
             viewState.blogPosts?.let{
                 //set blog post data
                 println("DEBUG: Setting blog posts to RecyclerView: ${viewState}")
+                blogListAdapter.submitList(it)
             }
 
             viewState.user?.let{
@@ -80,6 +112,15 @@ class MainFragment : Fragment() {
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
         super.onCreateOptionsMenu(menu, inflater)
         inflater.inflate(R.menu.main_menu, menu)
+    }
+
+    override fun onAttach(context: Context) {
+        super.onAttach(context)
+        try {
+            dataStateHandler = context as DataStateListener
+        }catch (e: ClassCastException){
+            println("DEBUG: $context must implement DataStateListener")
+        }
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
@@ -97,5 +138,9 @@ class MainFragment : Fragment() {
 
     private fun triggerGetUserEvent() {
         viewModel.setStateEvent(MainStateEvent.GetUserEvent("1"))
+    }
+
+    override fun onItemSelected(position: Int, item: BlogPost) {
+
     }
 }
